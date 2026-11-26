@@ -4,27 +4,24 @@
 To design and implement a multidocument retrieval agent using LlamaIndex to extract and synthesize information from multiple research articles, and to evaluate its performance by testing it with diverse queries, analyzing its ability to deliver concise, relevant, and accurate responses.
 
 ### PROBLEM STATEMENT:
-Researchers often have to read many long research papers to find one answer or to compare ideas across papers, which is slow and error-prone. An agent that can search several documents at once and combine the findings would save time. This experiment builds a multidocument retrieval agent using LlamaIndex. The agent reads multiple research PDFs, picks the right tool for each question, and returns concise, relevant answers. It is tested with different kinds of queries.
+Researchers often have to read many long papers to find one answer or to compare ideas across papers, which is slow and error-prone. A single agent that can search many documents and combine the findings would save a lot of time. This experiment builds a multidocument retrieval agent using LlamaIndex over 11 research papers. The agent selects the relevant papers and tools for each question, retrieves the needed information, and combines it into concise, relevant answers. It is tested with different kinds of queries.
 
 ### DESIGN STEPS:
+#### Step 1: Create tools for each document
 
-#### STEP 1: Create tools for each document
+Load each of the 11 PDFs (p1 to p11) and split its text into chunks.
+For every paper, build a vector tool for specific questions (datasets, methods, results) and a summary tool for overview questions.
+Put the opening text of each paper (title and abstract) into the tool descriptions, so the agent can tell which tool belongs to which paper. This gives 11 × 2 = 22 tools.
 
-Load each research PDF (MAP, newspaper and MERAG) and split its text into chunks.
-Build two tools for every paper: a vector tool for specific questions (e.g. dataset, results) and a summary tool for overview questions.
-Combine all the tools (3 papers × 2 tools = 6 tools) into one list.
+#### Step 2: Add tool retrieval and build the agent
 
-#### STEP 2:Build the agent
+Create an object index over all 22 tools, so that only the 3 or 4 tools most relevant to a question are given to the agent, instead of all 22.
+Set up the LLM (OpenAI GPT model) and build the agent with FunctionCallingAgentWorker and AgentRunner, with verbose=True to log every tool call.
 
-Set up the LLM (OpenAI GPT model) and the embedding model.
-Create the agent with FunctionCallingAgentWorker and AgentRunner, giving it the list of all tools.
-Turn on verbose=True so every tool call the agent makes is shown.
+#### Step 3: Query the agent and evaluate
 
-#### STEP 3:Query the agent and evaluate
-
-Ask a specific question (e.g. the evaluation dataset and results of the newspaper paper) and a multi-document question (e.g. a summary of both MERAG and MAP).
+Ask specific questions (e.g. the main contribution and evaluation dataset of one paper), summary questions, and comparison questions across two papers.
 Check in the log which tools the agent chose, and whether the answers are concise, relevant and accurate.
-Test with different kinds of queries (specific, summary, comparison) to judge how well it handles them.
 
 ### PROGRAM:
 ```python
@@ -58,7 +55,8 @@ llm = OpenAI(model="gpt-4o-mini")
 Settings.llm = llm
 Settings.embed_model = OpenAIEmbedding(model="text-embedding-3-small")
 
-papers = ["MAP.pdf", "newspaper.pdf", "MERAG.pdf"]
+papers = ["p1.pdf", "p2.pdf", "p3.pdf","p4.pdf","p5.pdf","p6.pdf",
+          "p7.pdf", "p8.pdf", "p9.pdf", "p10.pdf","p11.pdf"]
 
 missing = [p for p in papers if not os.path.isfile(p)]
 if missing:
@@ -117,9 +115,28 @@ print("\nANSWER 2:\n", str(response))
 
 ```
 
-### OUTPUT:
-<img width="1903" height="1036" alt="Screenshot 2026-11-11 142615" src="https://github.com/user-attachments/assets/e6eaa5c7-9c5a-49bb-ae42-406fa614c8d5" />
+#### Output Before Query Execution:
+<img width="1338" height="422" alt="image" src="https://github.com/user-attachments/assets/6d0ac9e7-c50c-41b0-b178-d17f0cb58c68" />
+
+#### Query:
+```python
+queries = [
+    "What problem does paper p7 (fake news detection with RAG) solve, and how does it use retrieval augmented generation?",
+    "Compare paper p7 (fake news detection using RAG) with paper p10 (multilingual document question answering). How does each use retrieval?",
+    "Compare the Engineering Copilot paper p6 with the multilingual document question answering paper p10. What are their approaches?",
+    "Summarize the approach of paper p11 on scam call detection and describe its evaluation results.",
+]
+
+for i, q in enumerate(queries, 1):
+    print(f"\n=========== QUERY {i} ===========")
+    response = agent.query(q)
+    print(f"\nANSWER {i}:\n", str(response))
+```
+#### Output After Query Execution:
+<img width="1900" height="946" alt="image" src="https://github.com/user-attachments/assets/666c3374-3de1-4332-bd96-5e421531ae00" />
+
+<img width="1382" height="458" alt="image" src="https://github.com/user-attachments/assets/0dda3477-97ac-45a9-894c-62478305636d" />
 
 
 ### RESULT:
-A multidocument retrieval agent was designed and implemented using LlamaIndex. For each of the three research papers, a vector tool and a summary tool were created, and the six tools were given to a function-calling agent with a GPT model. The agent chose the right tool for each question, retrieved the relevant parts of the papers, and combined them into clear answers. It handled specific questions, summaries across two papers and comparison queries correctly. Thus, the multidocument retrieval agent was successfully developed and evaluated.
+A multidocument retrieval agent was designed and implemented using LlamaIndex over 11 research papers. A vector tool and a summary tool were created for each paper, giving 22 tools, and a tool retriever selected only the relevant ones for each query. The agent called the right tools, for example the summary and vector tools of paper p1 for a question about its contribution and datasets, and combined their outputs into clear answers. It handled specific questions, summaries and cross-paper comparisons correctly. Thus, the multidocument agent using LlamaIndex was successfully developed and evaluated.
