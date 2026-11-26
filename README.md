@@ -153,3 +153,5 @@ for i, q in enumerate(queries, 1):
 
 ### RESULT:
 A multidocument retrieval agent was designed and implemented using LlamaIndex over 11 research papers. A vector tool and a summary tool were created for each paper, giving 22 tools, and a tool retriever selected only the relevant ones for each query. The agent called the right tools, for example the summary and vector tools of paper p1 for a question about its contribution and datasets, and combined their outputs into clear answers. It handled specific questions, summaries and cross-paper comparisons correctly. Thus, the multidocument agent using LlamaIndex was successfully developed and evaluated.
+
+
